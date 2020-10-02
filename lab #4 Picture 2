@@ -10,10 +10,14 @@ screen.fill([135, 206, 250])
 rect(screen, (66, 189, 84), (0, 400, 1500, 400))
 
 
-
 #house
 
 def house(x, y, k):
+    """
+    Функция house рисует дом.
+    х,у - координаты самой левой точки крыши
+    k - масштаб домика
+    """
     rect(screen, (150, 113, 23), (x, y, int(400*k), int(300*k)))
     rect(screen, (0, 0, 0), (x, y, int(400*k), int(300*k)), int(5*k))
     rect(screen, (95, 158, 169), (x+int(133*k), y+int(100*k), int(133*k), 
@@ -30,6 +34,11 @@ def house(x, y, k):
 #tree
 
 def tree(x, y, k):
+    """
+    Функция tree рисует дерево.
+    х,у - координаты верхнего левого угла ствола
+    k - масштаб дерева
+    """
     rect(screen, (0, 0, 0), (x, y, int(50*k), int(250*k)))
     circle(screen, (40, 114, 51), (x+int(20*k), y-int(200*k)), int(80*k))
     circle(screen, (0, 0, 0), (x+int(20*k), y-int(200*k)), int(80*k), int(3*k))
@@ -48,6 +57,11 @@ def tree(x, y, k):
 #cloud
 
 def cloud(x, y, k):
+    """
+    Функция cloud рисует облако.
+    x,y - координаты центра первой окружности нарисованного облачка
+    k - масштаб
+    """
     circle(screen, (255, 255, 255), (x, y), int(80*k))
     circle(screen, (0, 0, 0), (x, y), int(80*k), int(3*k))
     circle(screen, (255, 255, 255), (x+int(90*k), y), int(80*k))
@@ -65,6 +79,11 @@ def cloud(x, y, k):
 #sun
 
 def sun(x, y, k):
+    """
+    Фунция sun рисует солнце.
+    x,y - координаты центра солнца
+    k - масштаб солнца
+    """
     circle(screen, (255, 255, 0), (x, y), int(50*k))
     n = 20
     for i in range(0, n, 1):
