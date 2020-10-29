@@ -130,7 +130,7 @@ class Obstacle():
         
     def check_collision(self, ball):
         dist = np.sqrt((self.coord[0] - ball.coord[0])**2 + (self.coord[1] + 40 - ball.coord[1])**2)
-        min_dist = ball.rad
+        min_dist = 3*ball.rad
         return dist <= min_dist
         
     def draw(self, screen):
