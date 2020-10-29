@@ -48,7 +48,7 @@ class Table():
     pass
 class Gun():
     def __init__(self, coord=[30, SCREEN_SIZE[1]//2], 
-                 min_pow=10, max_pow=50):
+                 min_pow=10, max_pow=60):
         self.coord = coord
         self.angle = 0
         self.min_pow = min_pow
@@ -67,34 +67,84 @@ class Gun():
         
     def move(self):
         if self.active and self.power < self.max_pow:
-            self.power += 1
+            self.power += 2
     def set_angle(self, mouse_pos):
         self.angle = np.arctan2(mouse_pos[1] - self.coord[1], 
                                 mouse_pos[0] - self.coord[0])
 class Target():
-    pass
+    def __init__(self, coord = None, color = None, rad = 30):
+        if color == None:
+            color = (randint(0, 255), randint(0, 255), randint(0, 255))
+        if coord == None:
+            coord = [randint(rad, SCREEN_SIZE[0] - rad), randint(rad, SCREEN_SIZE[1] - rad)]
+        for i in range(2):
+            gun_coord=[30, SCREEN_SIZE[1]//2]
+            while coord[i] - gun_coord[i] < 80 and gun_coord[i] - coord[i] < 80:
+                coord = [randint(rad, SCREEN_SIZE[0] - rad), randint(rad, SCREEN_SIZE[1] - rad)]
+        self.color = color
+        self.coord = coord
+        self.rad = rad
+        
+    def check_collision(self, ball):
+        dist = sum([(self.coord[i] - ball.coord[i])**2 for i in range(2)])**0.5
+        min_dist = self.rad + ball.rad
+        return dist <= min_dist
+        
+    def draw(self, screen):
+        pg.draw.circle(screen, self.color, self.coord, self.rad)
+
 class Manager():
-    def __init__(self):
+    def __init__(self, n_targets = 1):
         self.gun = Gun()
         self.table = Table()
         self.balls = []
-    
+        self.targets = []
+        self.n_targets = n_targets
+        self.new_mission()
+        
+    def new_mission(self):
+        for i in range(self.n_targets):
+            self.targets.append(Target(rad=randint(20, 30)))
+        
+        
     def process(self, events, screen):
         done = self.handle_events(events)
         self.move()
+        self.collide()
         self.draw(screen)
         self.check_alive()
+        if len(self.targets) == 0 and len(self.balls) == 0:
+            self.new_mission()
         return done
 
     def draw(self, screen):
         screen.fill(BLACK)
         for ball in self.balls:
             ball.draw(screen)
+        for target in self.targets:
+            target.draw(screen)
         self.gun.draw(screen)
+        
+        
     def move(self):
         for ball in self.balls:
             ball.move()
+        for target in self.targets:
+            target.draw(screen)
         self.gun.move()
+        
+        
+    def collide(self):
+        collisions = []
+        targets_c = []
+        for i, ball in enumerate(self.balls):
+            for j, target in enumerate(self.targets):
+                if target.check_collision(ball):
+                    collisions.append([i, j])
+                    targets_c.append(j)
+        targets_c.sort()
+        for j in reversed(targets_c):
+            self.targets.pop(j)
 
     def check_alive(self):
         dead_balls = []
@@ -129,7 +179,7 @@ class Manager():
 screen = pg.display.set_mode(SCREEN_SIZE)
 pg.display.set_caption("The gun of Khiryanov")
 clock = pg.time.Clock()
-mgr = Manager()
+mgr = Manager(n_targets=5)
 done = False
 while not done:
     clock.tick(15)
