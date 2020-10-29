@@ -4,6 +4,7 @@ from random import randint
 SCREEN_SIZE = (800, 600)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
+WHITE = (255, 255, 255)
 pg.init()
 class Ball():
     def __init__(self, coord, vel, rad=15, color=None):
@@ -45,7 +46,23 @@ class Ball():
         ans = -vel_perp * coef_perp + vel_par * coef_par
         self.vel = ans.astype(np.int).tolist() 
 class Table():
-    pass
+   
+    def __init__(self, shoots_in_trgt=0, shoots=0):
+        self.shoots_in_trgt = shoots_in_trgt
+        self.shoots = shoots
+        self.font = pg.font.SysFont("garamondкурсив", 25)
+
+    def score(self):
+        return 2*self.shoots_in_trgt - self.shoots
+
+    def draw(self, screen):
+        score_surf = []
+        score_surf.append(self.font.render("Shoot in target: {}".format(self.shoots_in_trgt), 
+                                           True, WHITE))
+        score_surf.append(self.font.render("Shoots: {}".format(self.shoots), True, WHITE))
+        score_surf.append(self.font.render("Score: {}".format(self.score()), True, RED))
+        for i in range(3):
+            screen.blit(score_surf[i], [10, 10 + 30*i])    
 class Gun():
     def __init__(self, coord=[30, SCREEN_SIZE[1]//2], 
                  min_pow=10, max_pow=60):
@@ -58,7 +75,7 @@ class Gun():
     def draw(self, screen):
         end_pos = [self.coord[0] + self.power*np.cos(self.angle), 
                    self.coord[1] + self.power*np.sin(self.angle)]
-        pg.draw.line(screen, RED, self.coord, end_pos, 5)
+        pg.draw.line(screen, RED, self.coord, end_pos, 10)
     def strike(self):
         vel = [int(self.power * np.cos(self.angle)), int(self.power * np.sin(self.angle))]
         self.active = False
@@ -99,6 +116,7 @@ class Manager():
         self.table = Table()
         self.balls = []
         self.targets = []
+        self.table = Table()
         self.n_targets = n_targets
         self.new_mission()
         
@@ -124,6 +142,7 @@ class Manager():
         for target in self.targets:
             target.draw(screen)
         self.gun.draw(screen)
+        self.table.draw(screen)
         
         
     def move(self):
@@ -144,6 +163,7 @@ class Manager():
                     targets_c.append(j)
         targets_c.sort()
         for j in reversed(targets_c):
+            self.table.shoots_in_trgt += 1
             self.targets.pop(j)
 
     def check_alive(self):
@@ -171,6 +191,7 @@ class Manager():
             elif event.type == pg.MOUSEBUTTONUP:
                 if event.button == 1:
                     self.balls.append(self.gun.strike())
+                    self.table.shoots += 1
         
         if pg.mouse.get_focused():
             mouse_pos = pg.mouse.get_pos()
@@ -186,4 +207,3 @@ while not done:
     done = mgr.process(pg.event.get(), screen)
     pg.display.flip()
 pg.quit()
-
