@@ -7,7 +7,7 @@ RED = (255, 0, 0)
 WHITE = (255, 255, 255)
 pg.init()
 class Ball():
-    def __init__(self, coord, vel, rad=15, color=None):
+    def __init__(self, coord, vel, rad=20, color=None):
         if color == None:
             color = (randint(0, 255), randint(0, 255), randint(0, 255))
         self.color = color
@@ -57,7 +57,7 @@ class Table():
 
     def draw(self, screen):
         score_surf = []
-        score_surf.append(self.font.render("Shoot in target: {}".format(self.shoots_in_trgt), 
+        score_surf.append(self.font.render("Shoots in target: {}".format(self.shoots_in_trgt), 
                                            True, WHITE))
         score_surf.append(self.font.render("Shoots: {}".format(self.shoots), True, WHITE))
         score_surf.append(self.font.render("Score: {}".format(self.score()), True, RED))
@@ -109,21 +109,52 @@ class Target():
         
     def draw(self, screen):
         pg.draw.circle(screen, self.color, self.coord, self.rad)
+    
+class Obstacle():
+    def __init__(self, coord = None, color = None, S = 10, H = 60, speed = randint(-10, 10)):
+        if color == None:
+            color = RED
+        if coord == None:
+            coord = [randint(80, SCREEN_SIZE[0] - 100), randint(0, SCREEN_SIZE[1] - H)]
+        self.color = color
+        self.coord = coord
+        self.speed = speed
+        self.width = S
+        self.height = H
+        
+    def move(self):
+        self.coord[1] += self.speed
+        if self.coord[1] + self.height > SCREEN_SIZE[1] or self.coord[1] < 0:
+            self.speed = -self.speed
+
+        
+    def check_collision(self, ball):
+        dist = np.sqrt((self.coord[0] - ball.coord[0])**2 + (self.coord[1] + 40 - ball.coord[1])**2)
+        min_dist = ball.rad
+        return dist <= min_dist
+        
+    def draw(self, screen):
+        pg.draw.rect(screen, self.color, (self.coord[0], self.coord[1], self.width, self.height))
 
 class Manager():
-    def __init__(self, n_targets = 1):
+    def __init__(self, n_targets = 1, n_obstacles = 1):
         self.gun = Gun()
         self.table = Table()
         self.balls = []
         self.targets = []
+        self.obstacles = []
         self.table = Table()
         self.n_targets = n_targets
+        self.n_obstacles = n_obstacles 
         self.new_mission()
         
     def new_mission(self):
         for i in range(self.n_targets):
             self.targets.append(Target(rad=randint(20, 30)))
-        
+            
+    def set_obstacles(self):
+        for i in range(self.n_obstacles):
+            self.obstacles.append(Obstacle())
         
     def process(self, events, screen):
         done = self.handle_events(events)
@@ -131,6 +162,8 @@ class Manager():
         self.collide()
         self.draw(screen)
         self.check_alive()
+        if len(self.obstacles) == 0:
+            self.set_obstacles()
         if len(self.targets) == 0 and len(self.balls) == 0:
             self.new_mission()
         return done
@@ -141,8 +174,11 @@ class Manager():
             ball.draw(screen)
         for target in self.targets:
             target.draw(screen)
+        for obstacle in self.obstacles:
+            obstacle.draw(screen)
         self.gun.draw(screen)
         self.table.draw(screen)
+        
         
         
     def move(self):
@@ -150,6 +186,8 @@ class Manager():
             ball.move()
         for target in self.targets:
             target.draw(screen)
+        for obstacle in self.obstacles:
+            obstacle.move()
         self.gun.move()
         
         
@@ -162,6 +200,12 @@ class Manager():
                     collisions.append([i, j])
                     targets_c.append(j)
         targets_c.sort()
+        for i, ball in enumerate(self.balls):
+            for j, obstacle in enumerate(self.obstacles):
+                if obstacle.check_collision(ball):
+                    n = [[1, 0], [0, 1]]
+                    ball.coord[0] -= ball.vel[0]
+                    ball.flip_vel(n[0])
         for j in reversed(targets_c):
             self.table.shoots_in_trgt += 1
             self.targets.pop(j)
@@ -200,7 +244,7 @@ class Manager():
 screen = pg.display.set_mode(SCREEN_SIZE)
 pg.display.set_caption("The gun of Khiryanov")
 clock = pg.time.Clock()
-mgr = Manager(n_targets=5)
+mgr = Manager(n_targets=5, n_obstacles = 3)
 done = False
 while not done:
     clock.tick(15)
