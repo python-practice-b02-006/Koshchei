@@ -209,8 +209,8 @@ class Manager():
             for j, obstacle in enumerate(self.obstacles):
                 if (obstacle.coord[1] - ball.rad < ball.coord[1] < obstacle.coord[1] + obstacle.height + ball.rad 
                     and obstacle.coord[0] - ball.rad < ball.coord[0] < obstacle.coord[0] + obstacle.width + ball.rad): 
-                    
-                    ball.vel[0] = 0
+                    ball.coord[1] = SCREEN_SIZE[1] - ball.rad
+                    ball.vel[1] = 0
         for j in reversed(targets_c):
             self.table.shoots_in_trgt += 1
             self.targets.pop(j)
