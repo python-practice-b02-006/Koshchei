@@ -1,7 +1,7 @@
 import pygame as pg
 import numpy as np
 from random import randint
-SCREEN_SIZE = (800, 600)
+SCREEN_SIZE = (680, 600)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 WHITE = (255, 255, 255)
@@ -57,7 +57,7 @@ class Table():
 
     def draw(self, screen):
         score_surf = []
-        score_surf.append(self.font.render("Shoots in target: {}".format(self.shoots_in_trgt), 
+        score_surf.append(self.font.render("Колличество лаб, сданных на полный балл: {}".format(self.shoots_in_trgt), 
                                            True, WHITE))
         score_surf.append(self.font.render("Shoots: {}".format(self.shoots), True, WHITE))
         score_surf.append(self.font.render("Score: {}".format(self.score()), True, RED))
@@ -101,17 +101,18 @@ class Target():
         self.color = color
         self.coord = coord
         self.rad = rad
-        
+    
     def check_collision(self, ball):
         dist = sum([(self.coord[i] - ball.coord[i])**2 for i in range(2)])**0.5
         min_dist = self.rad + ball.rad
         return dist <= min_dist
         
+
     def draw(self, screen):
         pg.draw.circle(screen, self.color, self.coord, self.rad)
     
 class Obstacle():
-    def __init__(self, coord = None, color = None, S = 10, H = 60, speed = randint(-10, 10)):
+    def __init__(self, coord = None, color = None, S = 20, H = 90, speed = randint(-10, 10)):
         if color == None:
             color = RED
         if coord == None:
@@ -126,15 +127,17 @@ class Obstacle():
         self.coord[1] += self.speed
         if self.coord[1] + self.height > SCREEN_SIZE[1] or self.coord[1] < 0:
             self.speed = -self.speed
-
-        
-    def check_collision(self, ball):
-        dist = np.sqrt((self.coord[0] - ball.coord[0])**2 + (self.coord[1] + 40 - ball.coord[1])**2)
-        min_dist = 3*ball.rad
-        return dist <= min_dist
         
     def draw(self, screen):
-        pg.draw.rect(screen, self.color, (self.coord[0], self.coord[1], self.width, self.height))
+        surf = pg.Surface((self.height, self.width))
+        surf.fill(RED)
+        f = pg.font.SysFont('arial', 36)
+        text = f.render('NIKITA', 0, (255, 255, 255))
+        surf.blit(text, (0, -10))
+        surf2 = pg.transform.rotate(surf, 90)
+        
+        screen.blit(surf2, (self.coord[0], self.coord[1]))
+        
 
 class Manager():
     def __init__(self, n_targets = 1, n_obstacles = 1):
@@ -170,6 +173,8 @@ class Manager():
 
     def draw(self, screen):
         screen.fill(BLACK)
+        SC_IMG = pg.image.load("Поставьте пожалмста полный балл.jpeg")
+        screen.blit(SC_IMG, (0, 0))
         for ball in self.balls:
             ball.draw(screen)
         for target in self.targets:
@@ -202,10 +207,10 @@ class Manager():
         targets_c.sort()
         for i, ball in enumerate(self.balls):
             for j, obstacle in enumerate(self.obstacles):
-                if obstacle.check_collision(ball):
-                    n = [[1, 0], [0, 1]]
-                    ball.coord[0] -= ball.vel[0]
-                    ball.flip_vel(n[0])
+                if (obstacle.coord[1] - ball.rad < ball.coord[1] < obstacle.coord[1] + obstacle.height + ball.rad 
+                    and obstacle.coord[0] - ball.rad < ball.coord[0] < obstacle.coord[0] + obstacle.width + ball.rad): 
+                    
+                    ball.vel[0] = 0
         for j in reversed(targets_c):
             self.table.shoots_in_trgt += 1
             self.targets.pop(j)
@@ -243,11 +248,17 @@ class Manager():
         return done
 screen = pg.display.set_mode(SCREEN_SIZE)
 pg.display.set_caption("The gun of Khiryanov")
+
+
 clock = pg.time.Clock()
 mgr = Manager(n_targets=5, n_obstacles = 3)
 done = False
+SC_IMG = pg.image.load("Поставьте пожалмста полный балл.jpeg")
+screen.blit(SC_IMG, (0, 0))
 while not done:
+    
     clock.tick(15)
     done = mgr.process(pg.event.get(), screen)
     pg.display.flip()
+    
 pg.quit()
