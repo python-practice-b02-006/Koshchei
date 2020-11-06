@@ -192,9 +192,9 @@ class Obstacle():
         """
         surf = pg.Surface((self.height, self.width))
         surf.fill(RED)
-        f = pg.font.SysFont('arial', 36)
-        text = f.render('NIKITA', 0, (255, 255, 255))
-        surf.blit(text, (0, -10))
+        f = pg.font.SysFont('arial', 26)
+        text = f.render('SEREGA', 0, (255, 255, 255))
+        surf.blit(text, (0, -5))
         surf2 = pg.transform.rotate(surf, 90)
         
         screen.blit(surf2, (self.coord[0], self.coord[1]))
@@ -296,6 +296,7 @@ class Manager():
                     and obstacle.coord[0] - ball.rad < ball.coord[0] < obstacle.coord[0] + obstacle.width + ball.rad): 
                     ball.coord[1] = SCREEN_SIZE[1] - ball.rad
                     ball.vel[1] = 0
+                    
         for j in reversed(targets_c):
             self.table.shoots_in_trgt += 1
             self.targets.pop(j)
@@ -353,4 +354,3 @@ while not done:
     pg.display.flip()
     
 pg.quit()
-
