@@ -339,7 +339,7 @@ class Manager():
             self.gun.set_angle(mouse_pos)
         return done
 screen = pg.display.set_mode(SCREEN_SIZE)
-pg.display.set_caption("The gun of Khiryanov")
+pg.display.set_caption("Поставьте пожалмста полный балл")
 
 
 clock = pg.time.Clock()
